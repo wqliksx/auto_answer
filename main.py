@@ -1,6 +1,21 @@
-from flask import Flask, render_template
+import os
+from flask import Flask, render_template, redirect
+
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import DataRequired
 
 app = Flask(__name__)
+secret_key = os.getenv('SECRET_KEY')
+app.config['SECRET_KEY'] = str(secret_key)
+
+
+class LoginForm(FlaskForm):
+    username_astro = StringField('Id астронавта', validators=[DataRequired()])
+    password_astro = PasswordField('Пароль астронавта', validators=[DataRequired()])
+    username_cap = StringField('Id капитана', validators=[DataRequired()])
+    password_cap = PasswordField('Пароль капитана', validators=[DataRequired()])
+    submit = SubmitField('Войти')
 
 
 @app.route('/', defaults={'title': 'MarsOne'})
@@ -61,6 +76,19 @@ def answer():
     answers = get_answers()
     title = answers.pop('title')
     return render_template('auto_answer.html', title=title, answers=answers)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        return redirect('/success')
+    return render_template('login.html', title='Авторизация', form=form)
+
+
+@app.route('/success')
+def success():
+    return render_template('success.html')
 
 
 if __name__ == '__main__':
